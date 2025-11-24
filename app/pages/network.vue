@@ -1,0 +1,3 @@
+<template>
+  <div>network</div>
+</template>
