@@ -12,11 +12,54 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
       - name: 下载 CI 构建产物
-        uses: actions/download-artifact@v4
+        uses: actions/github-script@v7
         with:
-          name: build-files
-          path: ./
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // 获取触发当前工作流的 CI 工作流的运行 ID
+            const runId = ${{ github.event.workflow_run.id }};
+            
+            // 使用 GitHub API 获取 CI 工作流的构建产物
+            const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+            
+            // 查找名为 'build-files' 的构建产物
+            const buildArtifact = artifacts.data.artifacts.find(artifact => artifact.name === 'build-files');
+            
+            if (!buildArtifact) {
+              console.error('未找到名为 build-files 的构建产物');
+              return process.exit(1);
+            }
+            
+            // 下载构建产物
+            const download = await github.rest.actions.downloadArtifact({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              artifact_id: buildArtifact.id,
+              archive_format: 'zip',
+            });
+            
+            // 将下载的内容写入文件
+            const zipPath = path.join(process.env.GITHUB_WORKSPACE, 'build-files.zip');
+            fs.writeFileSync(zipPath, Buffer.from(download.data));
+            console.log(`已下载构建产物到 ${zipPath}`);
+      
+      - name: 解压构建产物
+        run: |
+          mkdir -p temp_build
+          unzip -q build-files.zip -d temp_build
+          cp -r temp_build/* .
+          rm -rf temp_build
+          ls -la
 
       - name: 部署到 Vercel
         uses: amondnet/vercel-action@v25
