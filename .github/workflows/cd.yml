@@ -7,7 +7,6 @@ on:
 jobs:
   deploy-to-vercel:
     runs-on: ubuntu-latest
-    needs: []
 
     steps:
       - name: 检出代码
@@ -17,10 +16,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
-      - name: 安装 pnpm
-        run: npm install -g pnpm
+      - name: 安装并设置 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          packageManager: true
+          run_install: false
 
       - name: 安装项目依赖
         run: pnpm install
