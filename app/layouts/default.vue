@@ -4,7 +4,7 @@
       <Logo />
       <MonitorTabs />
       <Search />
-      <span class="ml-4">{{ showUserName }}</span>
+      <span v-if="showUserName" class="ml-4">{{ showUserName }}</span>
     </header>
     <div class="px-10 mt-14 overflow-auto">
       <slot />
@@ -16,7 +16,7 @@
 import type { IUser } from '~/types/user'
 
 const showUserName = computed(() => {
-  return data.value?.user?.name || 'No name'
+  return data.value?.user?.name
 })
 
 const { data } = await useFetch<{ user: IUser }>('/api/user')
