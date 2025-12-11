@@ -4,9 +4,20 @@
       <Logo />
       <MonitorTabs />
       <Search />
+      <span class="ml-4">{{ showUserName }}</span>
     </header>
     <div class="px-10 mt-14 overflow-auto">
       <slot />
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import type { IUser } from '~/types/user'
+
+const showUserName = computed(() => {
+  return data.value?.user?.name || 'No name'
+})
+
+const { data } = await useFetch<{ user: IUser }>('/api/user')
+</script>
